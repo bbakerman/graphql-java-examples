@@ -1,0 +1,119 @@
+#
+#  Derived from the documentation of the underlyign API at https://anapioficeandfire.com/Documentation
+#
+
+type House {
+    id: ID!
+    url: String
+    name: String                        # The name of this house
+    region: String                      # The region that this house resides in.
+    coatOfArms: String                  # Text describing the coat of arms of this house.
+    words: String                       # The words of this house.
+    titles: [String]                    # The titles that this house holds.
+    seats:    [String]                  # The seats that this house holds.
+    currentLord: Character              # The Character resource URL of this house's current lord.
+    heir: Character                     # The Character resource URL of this house's heir.
+    overlord: Character                 # The House resource URL that this house answers to.
+    founded: String                     # The year that this house was founded.
+    founder: Character                  # The Character resource URL that founded this house.
+    diedOut: String                     # The year that this house died out.
+    ancestralWeapons: [String]          # An array of names of the noteworthy weapons that this house owns.
+    cadetBranches(first : Int = 10, after : String, last : Int, before : String): HouseConnection      # An array of House resource URLs that was founded from this house.
+    swornMembers(first : Int = 10, after : String, last : Int, before : String): CharacterConnection   # An array of Character resource URLs that are sworn to this house.
+}
+
+
+type HouseConnection {
+    edges: [HouseEdge]
+    pageInfo: PageInfo!
+}
+
+type HouseEdge {
+    cursor: String!
+    node: House
+}
+
+
+type Character {
+    id: ID!
+    url: String
+    name:String                     # The name of this character
+    gender: String                  # The gender of this character.
+    culture: String                 # The culture that this character belongs to.
+    born: String                    # Textual representation of when and where this character was born.
+    died: String                    # Textual representation of when and where this character died.
+    titles: [String]                # The titles that this character holds.
+    aliases: [String]               # The aliases that this character goes by.
+    father: Character               # The character resource URL of this character's father.
+    mother: Character               # The character resource URL of this character's mother.
+    spouse: Character               # todo : bad description upstream
+    tvSeries : [String]             # An array of names of the seasons of Game of Thrones that this character has been in.
+    playedBy : [String]             # An array of actor names that has played this character in the TV show Game Of Thrones.
+
+    allegiances(first : Int = 10, after : String, last : Int, before : String): HouseConnection  # An array of House resource URLs that this character is loyal to.
+    books(first : Int = 10, after : String, last : Int, before : String): BookConnection         # An array of Book resource URLs that this character has been in.
+    povBooks(first : Int = 10, after : String, last : Int, before : String): BookConnection      # An array of Book resource URLs that this character has had a POV-chapter in.
+}
+
+type CharacterConnection {
+    edges: [CharacterEdge]
+    pageInfo: PageInfo!
+}
+
+type CharacterEdge {
+    cursor: String!
+    node: Character
+}
+
+
+type Book {
+    id: ID!
+    url: String
+    name: String        # The name of this book
+    isbn: String        # The International Standard Book Number (ISBN-13) that uniquely identifies this book.
+    authors: [String]   # An array of names of the authors that wrote this book.
+    numberOfPages: Int  # The number of pages in this book.
+    publiser: String    # The company that published this book.
+    country: String     # The country that this book was published in
+    mediaType: String   # The type of media this book was released in.
+    released: String    # The date (ISO 8601) when this book was released.
+    characters(first : Int = 10, after : String, last : Int, before : String): CharacterConnection # An array of Character resource URLs that has been in this book.
+    povCharacters(first : Int = 10, after : String, last : Int, before : String): CharacterConnection # An array of Character resource URLs that has had a POV-chapter in this book.
+}
+
+type BookConnection {
+    edges: [BookEdge]
+    pageInfo: PageInfo!
+}
+
+type BookEdge {
+    cursor: String!
+    node: Book
+}
+
+
+
+#
+# relay types
+#
+
+# todo to be Relay compliant
+#interface Node {
+#  id: ID!
+#}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
+
+
+#
+# top level types last
+#
+type Query {
+    books(first : Int = 10, after : String, last : Int, before : String) : BookConnection
+    characters(first : Int = 10, after : String, last : Int, before : String) : CharacterConnection
+}
