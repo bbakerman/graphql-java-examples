@@ -117,26 +117,30 @@ public class ForwardOnlyFixedPagedDataSet {
      * is a set of fixed size pages of data that can ONLY be read in a forward only manner
      *
      * @param env                 the data fetching environment
+     * @param defaultFirstN       the default number for the 'first argument
      * @param pageOfDataRetriever the function to retrieve data
      *
      * @return a connection according to the 'after' and 'first' arguments
      */
-    public static Connection<Object> getConnection(DataFetchingEnvironment env, Function<Integer, PagedResult> pageOfDataRetriever) {
+    public static Connection<Object> getConnection(DataFetchingEnvironment env, int defaultFirstN, Function<Integer, PagedResult> pageOfDataRetriever) {
 
-        String zeroZeroDefault = new PageAndOffset(0, 0).toConnectionCursor().toString();
-        String desiredCursor = getArg(env, "after", getArg(env, "after", zeroZeroDefault));
-        PageAndOffset desiredPageAndOffset = PageAndOffset.fromCursor(desiredCursor);
-        int startPage = desiredPageAndOffset.getPage();
-        int firstN = getArg(env, "first", 0);
+        int firstN = getArg(env, "first", defaultFirstN);
         if (firstN < 0) {
             throw new IllegalArgumentException("You must provide a positive value for 'first'");
         }
+        boolean afterPresent = env.getArgument("after") != null;
+        String zeroZeroDefault = new PageAndOffset(0, 0).toConnectionCursor().toString();
+        String afterCursor = getArg(env, "after", zeroZeroDefault);
+
+        PageAndOffset desiredPageAndOffset = PageAndOffset.fromCursor(afterCursor);
+        int startPage = desiredPageAndOffset.getPage();
 
         List<Edge<Object>> edges = new ArrayList<>();
         boolean addToEdges = false;
         boolean hasNextPage = true;
         int fullOffset = 0;
-        while (edges.size() < firstN) {
+        int howManyNeeded = firstN + (afterPresent ? 1 : 0); // if after is present we slice it away later
+        while (edges.size() < howManyNeeded) {
 
             PagedResult pagedResult = pageOfDataRetriever.apply(startPage);
             for (Object obj : pagedResult.getResults()) {
@@ -155,8 +159,17 @@ public class ForwardOnlyFixedPagedDataSet {
                 break;
             }
         }
+        if (edges.isEmpty()) {
+            return emptyConnection();
+        }
 
-        List<Edge<Object>> slicedEdges = edges.subList(0, Math.min(edges.size(), firstN));
+        // 'after' cursors are exclusive so we skip the edge that equals 'after' but only if its
+        // present
+        int sliceIndex = 0;
+        if (afterPresent) {
+            sliceIndex = 1;
+        }
+        List<Edge<Object>> slicedEdges = edges.subList(sliceIndex, Math.min(edges.size(), sliceIndex + firstN));
         if (slicedEdges.isEmpty()) {
             return emptyConnection();
         }

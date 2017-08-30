@@ -14,9 +14,9 @@ class ForwardOnlyFixedPagedDataSetTest extends Specification {
         DataFetchingEnvironment env = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment()
                 .arguments([first: 20]).build()
 
-        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, {
+        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, 10, {
             page -> mkList(5)
-        })
+        },)
 
         then:
         connection.getEdges().size() == 20
@@ -30,9 +30,9 @@ class ForwardOnlyFixedPagedDataSetTest extends Specification {
         DataFetchingEnvironment env = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment()
                 .arguments([first: 20]).build()
 
-        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, {
+        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, 10, {
             page -> (page == 2) ? mkList(5, false) : mkList(5)
-        })
+        },)
 
         then:
         connection.getEdges().size() == 15
@@ -46,14 +46,14 @@ class ForwardOnlyFixedPagedDataSetTest extends Specification {
         DataFetchingEnvironment env = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment()
                 .arguments([first: 20, "after": mkCursor(10, 55)]).build()
 
-        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, {
+        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, 10, {
             page -> mkList(5)
-        })
+        },)
 
         then:
         connection.getEdges().size() == 20
         connection.getPageInfo() != null
-        mkListCount == 15 // 11 to get going and another 4 after that to get a full 20
+        mkListCount == 16 // 11 to get going and another 5 after that to get a full 20 because of after cursor is exclusive
     }
 
     def "cursor_is_after_total_set_and_hence_zero_results"() {
@@ -62,9 +62,9 @@ class ForwardOnlyFixedPagedDataSetTest extends Specification {
         DataFetchingEnvironment env = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment()
                 .arguments([first: 20, "after": mkCursor(0, 55)]).build()
 
-        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, {
+        def connection = ForwardOnlyFixedPagedDataSet.getConnection(env, 10, {
             page -> (page == 2) ? mkList(5, false) : mkList(5)
-        })
+        },)
 
         then:
         connection.getEdges().size() == 0

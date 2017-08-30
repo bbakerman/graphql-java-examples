@@ -54,14 +54,23 @@ public class HttpClient {
         return new ForwardOnlyFixedPagedDataSet.PagedResult<>(data, hasNext(dataAndResponse.getResponse()));
     }
 
+    //
+    // They reply back like :
+    //
+    // <https://www.anapioficeandfire.com/api/characters?page=2&pageSize=50>; rel="next",
+    // <https://www.anapioficeandfire.com/api/characters?page=1&pageSize=50>; rel="first",
+    // <https://www.anapioficeandfire.com/api/characters?page=43&pageSize=50>; rel="last"
+    //
+    // and if next is missing - there is no next
+    //
     private static boolean hasNext(Response response) {
         String linkHeader = response.header("Link");
-        return false;
+        return linkHeader != null && linkHeader.contains("rel=\"next\"");
     }
 
     public static DataAndResponse readResourceUrl(String url) {
         if (url == null || url.trim().isEmpty()) {
-            return new DataAndResponse(null,null);
+            return new DataAndResponse(null, null);
         }
         Request.Builder requestBuilder = new Request.Builder()
                 .url(url);

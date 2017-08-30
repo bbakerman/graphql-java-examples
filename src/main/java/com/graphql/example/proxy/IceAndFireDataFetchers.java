@@ -22,6 +22,8 @@ import static java.util.stream.Collectors.toList;
 
 class IceAndFireDataFetchers {
 
+    public static final int PAGE_SIZE = 50; // this is what they allow
+
     private BatchLoader<String, Object> urlBatchLoader = urls -> {
 
         // The backing API does not have an API to get multiple resources
@@ -126,16 +128,16 @@ class IceAndFireDataFetchers {
     DataFetcher books() {
         return env ->
                 CompletableFuture.supplyAsync(() ->
-                        ForwardOnlyFixedPagedDataSet.getConnection(env, pageNumber -> HttpClient.readResource("books",
-                                qp("page", pageNumber), qp("pageSize", 100))));
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE, pageNumber -> HttpClient.readResource("books",
+                                qp("page", pageNumber), qp("pageSize", PAGE_SIZE))));
     }
 
     DataFetcher characters() {
         return env ->
                 CompletableFuture.supplyAsync(() ->
-                        ForwardOnlyFixedPagedDataSet.getConnection(env, pageNumber ->
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE, pageNumber ->
                                 HttpClient.readResource("characters", qp("pageNumber", pageNumber),
-                                        qp("pageSize", 100))));
+                                        qp("pageSize", PAGE_SIZE))));
     }
 
     private static <T> T mapGet(Map<String, Object> source, String fieldName) {
