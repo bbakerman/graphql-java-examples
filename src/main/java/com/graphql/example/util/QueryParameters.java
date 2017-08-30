@@ -31,8 +31,8 @@ public class QueryParameters {
             this.value = value;
         }
 
-        public static QueryParameter qp(String name, String value) {
-            return new QueryParameter(name, value);
+        public static QueryParameter qp(String name, Object value) {
+            return new QueryParameter(name, value.toString());
         }
 
         public String getName() {

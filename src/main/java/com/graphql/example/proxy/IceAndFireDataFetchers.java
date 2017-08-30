@@ -1,13 +1,11 @@
 package com.graphql.example.proxy;
 
 import com.graphql.example.util.HttpClient;
-import com.graphql.example.util.QueryParameters.QueryParameter;
 import com.graphql.example.util.RelayUtils;
 import graphql.relay.Connection;
 import graphql.relay.Relay;
 import graphql.relay.SimpleListConnection;
 import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
 import org.dataloader.BatchLoader;
 import org.dataloader.DataLoader;
 import org.dataloader.impl.PromisedValues;
@@ -16,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -33,7 +30,7 @@ class IceAndFireDataFetchers {
 
         // but we can get them in parallel though via supplyAsync say
         for (String url : urls) {
-            resources.add(CompletableFuture.supplyAsync(() -> HttpClient.readResourceUrl(url)));
+            resources.add(CompletableFuture.supplyAsync(() -> HttpClient.readResourceUrl(url).getData()));
         }
 
         // wait for all of the values to complete via this PromisedValues helper
@@ -74,6 +71,9 @@ class IceAndFireDataFetchers {
             // before we go off to the data loader and actually make HTTP calls
             // for that data.  There is no point getting ALL the resources if we only
             // want a small page of them
+            //
+            // We can use SimpleListConnection in this case because the total set of possible edges
+            // is known from the field and we can get a subset of them
             //
             Connection<String> urlConnection = new SimpleListConnection<>(allUrls).get(env);
 
@@ -124,26 +124,18 @@ class IceAndFireDataFetchers {
     }
 
     DataFetcher books() {
-        return env -> {
-            QueryParameter pageSize = computePageSize(env);
-            List<Object> books = HttpClient.readResource("books", pageSize);
-            SimpleListConnection<Object> relayConnection = new SimpleListConnection<>(books);
-            return relayConnection.get(env);
-        };
+        return env ->
+                CompletableFuture.supplyAsync(() ->
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, pageNumber -> HttpClient.readResource("books",
+                                qp("page", pageNumber), qp("pageSize", 100))));
     }
 
     DataFetcher characters() {
-        return env -> {
-            QueryParameter pageSize = computePageSize(env);
-            List<Object> books = HttpClient.readResource("characters", pageSize);
-            SimpleListConnection<Object> relayConnection = new SimpleListConnection<>(books);
-            return relayConnection.get(env);
-        };
-    }
-
-    private QueryParameter computePageSize(DataFetchingEnvironment env) {
-        int first = Optional.ofNullable((Integer) env.getArgument("first")).orElse(100);
-        return qp("pageSize", "" + first);
+        return env ->
+                CompletableFuture.supplyAsync(() ->
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, pageNumber ->
+                                HttpClient.readResource("characters", qp("pageNumber", pageNumber),
+                                        qp("pageSize", 100))));
     }
 
     private static <T> T mapGet(Map<String, Object> source, String fieldName) {
