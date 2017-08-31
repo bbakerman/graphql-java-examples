@@ -1,5 +1,7 @@
 package com.graphql.example.proxy
 
+import com.graphql.example.proxy.relay.ForwardOnlyFixedPagedDataSet
+import com.graphql.example.proxy.relay.PagedResult
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.DataFetchingEnvironmentBuilder
 import spock.lang.Specification
@@ -82,7 +84,7 @@ class ForwardOnlyFixedPagedDataSetTest extends Specification {
         for (int i = 0; i < count; i++) {
             l.add("item" + i)
         }
-        return new ForwardOnlyFixedPagedDataSet.PagedResult(l, hasNextPage)
+        return new PagedResult(l, hasNextPage)
     }
 
 }

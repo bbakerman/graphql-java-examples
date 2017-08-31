@@ -1,6 +1,6 @@
 package com.graphql.example.util;
 
-import com.graphql.example.proxy.ForwardOnlyFixedPagedDataSet;
+import com.graphql.example.proxy.relay.PagedResult;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -38,7 +38,7 @@ public class HttpClient {
         }
     }
 
-    public static <T> ForwardOnlyFixedPagedDataSet.PagedResult<T> readResource(String resource, HttpQueryParameter... params) {
+    public static <T> PagedResult<T> readResource(String resource, HttpQueryParameter... params) {
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder();
         urlBuilder.scheme("https").host("www.anapioficeandfire.com").addPathSegment("api").addPathSegment(resource);
         if (params != null) {
@@ -51,7 +51,7 @@ public class HttpClient {
         DataAndResponse dataAndResponse = readResourceUrl(url);
         //noinspection unchecked
         List<T> data = (List<T>) dataAndResponse.getData();
-        return new ForwardOnlyFixedPagedDataSet.PagedResult<>(data, hasNext(dataAndResponse.getResponse()));
+        return new PagedResult<>(data, hasNext(dataAndResponse.getResponse()));
     }
 
     //

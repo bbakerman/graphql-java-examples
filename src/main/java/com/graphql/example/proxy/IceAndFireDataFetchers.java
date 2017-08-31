@@ -1,5 +1,7 @@
 package com.graphql.example.proxy;
 
+import com.graphql.example.proxy.relay.ForwardOnlyFixedPagedDataSet;
+import com.graphql.example.proxy.relay.PagedResult;
 import com.graphql.example.util.HttpClient;
 import com.graphql.example.util.RelayUtils;
 import graphql.relay.Connection;
@@ -150,9 +152,9 @@ class IceAndFireDataFetchers {
                                 pageNumber -> readPagedObjects("characters", pageNumber)));
     }
 
-    private ForwardOnlyFixedPagedDataSet.PagedResult<Map<String, Object>> readPagedObjects(String resource, int pageNumber) {
+    private PagedResult<Map<String, Object>> readPagedObjects(String resource, int pageNumber) {
         log.info("Fetching {} page: {}", resource, pageNumber);
-        ForwardOnlyFixedPagedDataSet.PagedResult<Map<String, Object>> pagedResult =
+        PagedResult<Map<String, Object>> pagedResult =
                 HttpClient.readResource(resource, qp("pageNumber", pageNumber), qp("pageSize", PAGE_SIZE));
 
         log.info("\tread {} {}", pagedResult.getResults().size(), resource);
