@@ -22,28 +22,6 @@ import java.util.Map;
  */
 public class QueryParameters {
 
-    public static class QueryParameter {
-        final String name;
-        final String value;
-
-        public QueryParameter(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public static QueryParameter qp(String name, Object value) {
-            return new QueryParameter(name, value.toString());
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
     String query;
     String operationName;
     Map<String, Object> variables = Collections.emptyMap();

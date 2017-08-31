@@ -18,8 +18,8 @@ type House {
     founder: Character                  # The Character resource URL that founded this house.
     diedOut: String                     # The year that this house died out.
     ancestralWeapons: [String]          # An array of names of the noteworthy weapons that this house owns.
-    cadetBranches(first : Int = 10, after : String, last : Int, before : String): HouseConnection      # An array of House resource URLs that was founded from this house.
-    swornMembers(first : Int = 10, after : String, last : Int, before : String): CharacterConnection   # An array of Character resource URLs that are sworn to this house.
+    cadetBranches(first : Int = 10, after : String): HouseConnection      # An array of House resource URLs that was founded from this house.
+    swornMembers(first : Int = 10, after : String): CharacterConnection   # An array of Character resource URLs that are sworn to this house.
 }
 
 
@@ -50,9 +50,9 @@ type Character {
     tvSeries : [String]             # An array of names of the seasons of Game of Thrones that this character has been in.
     playedBy : [String]             # An array of actor names that has played this character in the TV show Game Of Thrones.
 
-    allegiances(first : Int = 10, after : String, last : Int, before : String): HouseConnection  # An array of House resource URLs that this character is loyal to.
-    books(first : Int = 10, after : String, last : Int, before : String): BookConnection         # An array of Book resource URLs that this character has been in.
-    povBooks(first : Int = 10, after : String, last : Int, before : String): BookConnection      # An array of Book resource URLs that this character has had a POV-chapter in.
+    allegiances(first : Int = 10, after : String): HouseConnection  # An array of House resource URLs that this character is loyal to.
+    books(first : Int = 10, after : String): BookConnection         # An array of Book resource URLs that this character has been in.
+    povBooks(first : Int = 10, after : String): BookConnection      # An array of Book resource URLs that this character has had a POV-chapter in.
 }
 
 type CharacterConnection {
@@ -77,8 +77,8 @@ type Book {
     country: String     # The country that this book was published in
     mediaType: String   # The type of media this book was released in.
     released: String    # The date (ISO 8601) when this book was released.
-    characters(first : Int = 10, after : String, last : Int, before : String): CharacterConnection # An array of Character resource URLs that has been in this book.
-    povCharacters(first : Int = 10, after : String, last : Int, before : String): CharacterConnection # An array of Character resource URLs that has had a POV-chapter in this book.
+    characters(first : Int = 10, after : String): CharacterConnection # An array of Character resource URLs that has been in this book.
+    povCharacters(first : Int = 10, after : String): CharacterConnection # An array of Character resource URLs that has had a POV-chapter in this book.
 }
 
 type BookConnection {
@@ -114,6 +114,7 @@ type PageInfo {
 # top level types last
 #
 type Query {
-    books(first : Int = 10, after : String, last : Int, before : String) : BookConnection
-    characters(first : Int = 10, after : String, last : Int, before : String) : CharacterConnection
+    books(first : Int = 10, after : String) : BookConnection
+    characters(first : Int = 10, after : String) : CharacterConnection
+    houses(first : Int = 10, after : String) : HouseConnection
 }

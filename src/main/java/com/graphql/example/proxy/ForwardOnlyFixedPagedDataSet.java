@@ -122,7 +122,7 @@ public class ForwardOnlyFixedPagedDataSet {
      *
      * @return a connection according to the 'after' and 'first' arguments
      */
-    public static Connection<Object> getConnection(DataFetchingEnvironment env, int defaultFirstN, Function<Integer, PagedResult> pageOfDataRetriever) {
+    public static <T> Connection<T> getConnection(DataFetchingEnvironment env, int defaultFirstN, Function<Integer, PagedResult<T>> pageOfDataRetriever) {
 
         int firstN = getArg(env, "first", defaultFirstN);
         if (firstN < 0) {
@@ -135,15 +135,15 @@ public class ForwardOnlyFixedPagedDataSet {
         PageAndOffset desiredPageAndOffset = PageAndOffset.fromCursor(afterCursor);
         int startPage = desiredPageAndOffset.getPage();
 
-        List<Edge<Object>> edges = new ArrayList<>();
+        List<Edge<T>> edges = new ArrayList<>();
         boolean addToEdges = false;
         boolean hasNextPage = true;
         int fullOffset = 0;
         int howManyNeeded = firstN + (afterPresent ? 1 : 0); // if after is present we slice it away later
         while (edges.size() < howManyNeeded) {
 
-            PagedResult pagedResult = pageOfDataRetriever.apply(startPage);
-            for (Object obj : pagedResult.getResults()) {
+            PagedResult<T> pagedResult = pageOfDataRetriever.apply(startPage);
+            for (T obj : pagedResult.getResults()) {
                 ConnectionCursor edgeCursor = new PageAndOffset(startPage, fullOffset).toConnectionCursor();
                 if (fullOffset == desiredPageAndOffset.getOffset()) {
                     addToEdges = true;
@@ -169,7 +169,7 @@ public class ForwardOnlyFixedPagedDataSet {
         if (afterPresent) {
             sliceIndex = 1;
         }
-        List<Edge<Object>> slicedEdges = edges.subList(sliceIndex, Math.min(edges.size(), sliceIndex + firstN));
+        List<Edge<T>> slicedEdges = edges.subList(sliceIndex, Math.min(edges.size(), sliceIndex + firstN));
         if (slicedEdges.isEmpty()) {
             return emptyConnection();
         }

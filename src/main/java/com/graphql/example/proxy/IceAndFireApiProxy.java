@@ -146,6 +146,7 @@ public class IceAndFireApiProxy extends AbstractHandler {
                 .type(newTypeWiring("Query")
                         .dataFetcher("books", iceAndFireDataFetchers.books())
                         .dataFetcher("characters", iceAndFireDataFetchers.characters())
+                        .dataFetcher("houses", iceAndFireDataFetchers.houses())
                 )
                 .type(newTypeWiring("Book")
                         .dataFetcher("characters", iceAndFireDataFetchers.urlConnection())

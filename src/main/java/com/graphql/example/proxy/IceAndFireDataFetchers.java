@@ -9,6 +9,8 @@ import graphql.schema.DataFetcher;
 import org.dataloader.BatchLoader;
 import org.dataloader.DataLoader;
 import org.dataloader.impl.PromisedValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,10 +19,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import static com.graphql.example.util.QueryParameters.QueryParameter.qp;
+import static com.graphql.example.util.HttpQueryParameter.qp;
 import static java.util.stream.Collectors.toList;
 
 class IceAndFireDataFetchers {
+
+    private static final Logger log = LoggerFactory.getLogger(IceAndFireDataFetchers.class);
 
     public static final int PAGE_SIZE = 50; // this is what they allow
 
@@ -128,16 +132,41 @@ class IceAndFireDataFetchers {
     DataFetcher books() {
         return env ->
                 CompletableFuture.supplyAsync(() ->
-                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE, pageNumber -> HttpClient.readResource("books",
-                                qp("page", pageNumber), qp("pageSize", PAGE_SIZE))));
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE,
+                                pageNumber -> readPagedObjects("books", pageNumber)));
+    }
+
+    DataFetcher houses() {
+        return env ->
+                CompletableFuture.supplyAsync(() ->
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE,
+                                pageNumber -> readPagedObjects("houses", pageNumber)));
     }
 
     DataFetcher characters() {
         return env ->
                 CompletableFuture.supplyAsync(() ->
-                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE, pageNumber ->
-                                HttpClient.readResource("characters", qp("pageNumber", pageNumber),
-                                        qp("pageSize", PAGE_SIZE))));
+                        ForwardOnlyFixedPagedDataSet.getConnection(env, PAGE_SIZE,
+                                pageNumber -> readPagedObjects("characters", pageNumber)));
+    }
+
+    private ForwardOnlyFixedPagedDataSet.PagedResult<Map<String, Object>> readPagedObjects(String resource, int pageNumber) {
+        log.info("Fetching {} page: {}", resource, pageNumber);
+        ForwardOnlyFixedPagedDataSet.PagedResult<Map<String, Object>> pagedResult =
+                HttpClient.readResource(resource, qp("pageNumber", pageNumber), qp("pageSize", PAGE_SIZE));
+
+        log.info("\tread {} {}", pagedResult.getResults().size(), resource);
+
+        pagedResult.getResults().forEach(resourceObj -> {
+            //
+            // this is mutative since relay requires ids yet the REST API does not have them
+            addGlobalIds(resourceObj);
+            String url = (String) resourceObj.get("url");
+            //
+            // prime the dataloader with each entry so caching should work when     we ask for it again
+            resourceDataLoader.prime(url, resourceObj);
+        });
+        return pagedResult;
     }
 
     private static <T> T mapGet(Map<String, Object> source, String fieldName) {

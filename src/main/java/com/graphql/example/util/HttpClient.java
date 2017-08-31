@@ -38,11 +38,11 @@ public class HttpClient {
         }
     }
 
-    public static <T> ForwardOnlyFixedPagedDataSet.PagedResult<T> readResource(String resource, QueryParameters.QueryParameter... params) {
+    public static <T> ForwardOnlyFixedPagedDataSet.PagedResult<T> readResource(String resource, HttpQueryParameter... params) {
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder();
         urlBuilder.scheme("https").host("www.anapioficeandfire.com").addPathSegment("api").addPathSegment(resource);
         if (params != null) {
-            for (QueryParameters.QueryParameter param : params) {
+            for (HttpQueryParameter param : params) {
                 urlBuilder.addQueryParameter(param.getName(), param.getValue());
             }
         }
@@ -90,7 +90,6 @@ public class HttpClient {
         Response response = httpClient.newCall(request).execute();
         ResponseBody body = response.body();
         long ms = response.receivedResponseAtMillis() - response.sentRequestAtMillis();
-        log.info("Reading {}...", request.url());
 
         String jsonString = "";
         Object obj = null;
